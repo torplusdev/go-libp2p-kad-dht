@@ -31,6 +31,7 @@ require (
 	github.com/multiformats/go-multiaddr-net v0.1.5
 	github.com/multiformats/go-multihash v0.0.13
 	github.com/multiformats/go-multistream v0.1.1
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.5.1
 	github.com/whyrusleeping/go-keyspace v0.0.0-20160322163242-5b898ac5add1
 	go.opencensus.io v0.22.3
