@@ -14,7 +14,6 @@ import (
 
 	"github.com/ipfs/go-cid"
 	u "github.com/ipfs/go-ipfs-util"
-	pb "github.com/libp2p/go-libp2p-kad-dht/pb"
 	"github.com/libp2p/go-libp2p-kad-dht/qpeerset"
 	dhtrouting "github.com/libp2p/go-libp2p-kad-dht/routing"
 	kb "github.com/libp2p/go-libp2p-kbucket"
@@ -89,7 +88,7 @@ func (dht *IpfsDHT) PutValueExtended(ctx context.Context, key string, value []by
 				ID:   p,
 			})
 
-			err := dht.putValueToPeer(ctx, p, rec)
+			err := dht.protoMessenger.PutValue(ctx, p, rec)
 			if err != nil {
 				logger.Debugf("failed putting value to peer: %s", err)
 			}
@@ -183,7 +182,7 @@ func (dht *IpfsDHT) SearchValueExtended(ctx context.Context, key string, opts ..
 					}
 					ctx, cancel := context.WithTimeout(ctx, time.Second*30)
 					defer cancel()
-					err := dht.putValueToPeer(ctx, p, fixupRec)
+					err := dht.protoMessenger.PutValue(ctx, p, fixupRec)
 					if err != nil {
 						logger.Debug("Error correcting DHT entry: ", err)
 					}
@@ -250,7 +249,7 @@ func (dht *IpfsDHT) getValues(ctx, queryAbortedCtx context.Context, key string, 
 					ID:   p,
 				})
 
-				rec, peers, err := dht.getValueOrPeers(ctx, p, key)
+				rec, peers, err := dht.protoMessenger.GetValue(ctx, p, key)
 				switch err {
 				case routing.ErrNotFound:
 					// in this case, they responded with nothing,
@@ -380,11 +379,6 @@ func (dht *IpfsDHT) ProvideExtended(ctx context.Context, key cid.Cid, brdcst boo
 		return nil, err
 	}
 
-	mes, err := dht.makeProvRecord(keyMH)
-	if err != nil {
-		return nil, err
-	}
-
 	closestPeers := make([]peer.ID, 0, dht.bucketSize)
 	wg := sync.WaitGroup{}
 	for p := range peers {
@@ -393,7 +387,7 @@ func (dht *IpfsDHT) ProvideExtended(ctx context.Context, key cid.Cid, brdcst boo
 		go func(p peer.ID) {
 			defer wg.Done()
 			logger.Debugf("putProvider(%s, %s)", keyMH, p)
-			err := dht.sendMessage(ctx, p, mes)
+			err := dht.protoMessenger.PutProvider(ctx, p, keyMH, dht.host)
 			if err != nil {
 				logger.Debug(err)
 			}
@@ -410,23 +404,6 @@ func (dht *IpfsDHT) ProvideExtended(ctx context.Context, key cid.Cid, brdcst boo
 func (dht *IpfsDHT) Provide(ctx context.Context, key cid.Cid, brdcst bool) error {
 	_, err := dht.ProvideExtended(ctx, key, brdcst)
 	return err
-}
-
-func (dht *IpfsDHT) makeProvRecord(key []byte) (*pb.Message, error) {
-	pi := peer.AddrInfo{
-		ID:    dht.self,
-		Addrs: dht.host.Addrs(),
-	}
-
-	// // only share WAN-friendly addresses ??
-	// pi.Addrs = addrutil.WANShareableAddrs(pi.Addrs)
-	if len(pi.Addrs) < 1 {
-		return nil, fmt.Errorf("no known addresses for self, cannot put provider")
-	}
-
-	pmes := pb.NewMessage(pb.Message_ADD_PROVIDER, key, 0)
-	pmes.ProviderPeers = pb.RawPeerInfosToPBPeers([]peer.AddrInfo{pi})
-	return pmes, nil
 }
 
 // FindProviders searches until the context expires.
@@ -515,14 +492,12 @@ func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx, queryAbortedCtx context.Conte
 					ID:   p,
 				})
 
-				pmes, err := dht.findProvidersSingle(ctx, p, key)
+				provs, peers, err := dht.protoMessenger.GetProviders(ctx, p, key)
 				if err != nil {
 					return nil, err
 				}
 
-				logger.Debugf("%d provider entries", len(pmes.GetProviderPeers()))
-				provs := pb.PBPeersToPeerInfos(pmes.GetProviderPeers())
-				logger.Debugf("%d provider entries decoded", len(provs))
+				logger.Debugf("%d provider entries", len(provs))
 
 				// Add unique providers from request, up to 'count'
 				for _, prov := range provs {
@@ -537,8 +512,6 @@ func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx, queryAbortedCtx context.Conte
 				}
 
 				// Give closer peers back to the query to be queried
-				closer := pmes.GetCloserPeers()
-				peers := pb.PBPeersToPeerInfos(closer)
 				logger.Debugf("got closer peers: %d %s", len(peers), peers)
 
 				routing.PublishQueryEvent(ctx, &routing.QueryEvent{
@@ -606,12 +579,11 @@ func (dht *IpfsDHT) FindPeerExtended(ctx context.Context, id peer.ID, opts ...ro
 				ID:   p,
 			})
 
-			pmes, err := dht.findPeerSingle(ctx, p, id)
+			peers, err := dht.protoMessenger.GetClosestPeers(ctx, p, id)
 			if err != nil {
 				logger.Debugf("error getting closer peers: %s", err)
 				return nil, err
 			}
-			peers := pb.PBPeersToPeerInfos(pmes.GetCloserPeers())
 
 			// For DHT query command
 			routing.PublishQueryEvent(ctx, &routing.QueryEvent{
