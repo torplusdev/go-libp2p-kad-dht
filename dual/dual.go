@@ -238,6 +238,14 @@ func (dht *DHT) PutValue(ctx context.Context, key string, val []byte, opts ...ro
 	return dht.LAN.PutValue(ctx, key, val, opts...)
 }
 
+func (d *DHT) GetMostFrequentContentAsync(ctx context.Context) <- chan routing.ContentListing {
+	// Empty placeholder
+	topOut := make(chan routing.ContentListing)
+
+	defer close(topOut)
+	return topOut
+}
+
 // GetValue searches for the value corresponding to given Key.
 func (d *DHT) GetValue(ctx context.Context, key string, opts ...routing.Option) ([]byte, error) {
 	lanCtx, cancelLan := context.WithCancel(ctx)

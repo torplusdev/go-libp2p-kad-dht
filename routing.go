@@ -524,6 +524,38 @@ func (dht *IpfsDHT) FindProvidersAsync(ctx context.Context, key cid.Cid, count i
 	return peerOut
 }
 
+func (dht *IpfsDHT) GetMostFrequentContentAsync(ctx context.Context) <- chan routing.ContentListing {
+	if dht.frequentCIDs == nil {
+		topOut := make(chan routing.ContentListing )
+		close(topOut)
+		return topOut
+	}
+
+	ts := time.Now()
+
+	defaultChannelBuffer := 1
+
+	topOut := make(chan routing.ContentListing, defaultChannelBuffer)
+
+	for _,e := range dht.frequentCIDs.Elements() {
+
+		_,cid,err := cid.CidFromBytes(e.Data)
+
+		if err != nil {
+			listing := routing.ContentListing{
+				Cid:cid,
+				Frequency:   e.Freq,
+				LastUpdated: ts,
+			}
+
+			topOut <- listing
+		}
+	}
+
+	return topOut
+}
+
+
 func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx context.Context, key multihash.Multihash, count int, peerOut chan peer.AddrInfo) {
 	logger.Debugw("finding providers", "key", key)
 
@@ -537,6 +569,10 @@ func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx context.Context, key multihash
 		ps = peer.NewLimitedSet(count)
 	}
 
+	// Store key for later top-k retrieval
+	dht.frequentCIDs.Add(key)
+
+	// Local lookup
 	provs := dht.ProviderManager.GetProviders(ctx, key)
 	for _, p := range provs {
 		// NOTE: Assuming that this list of peers is unique
