@@ -2,7 +2,10 @@ module github.com/libp2p/go-libp2p-kad-dht
 
 go 1.14
 
+replace github.com/libp2p/go-libp2p-core => ../go-libp2p-core
+
 require (
+	github.com/d4l3k/messagediff v1.2.1 // indirect
 	github.com/gogo/protobuf v1.3.1
 	github.com/google/gopacket v1.1.18
 	github.com/google/uuid v1.1.2

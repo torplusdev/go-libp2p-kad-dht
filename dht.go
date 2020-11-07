@@ -36,6 +36,8 @@ import (
 	"github.com/multiformats/go-multihash"
 	"go.opencensus.io/tag"
 	"go.uber.org/zap"
+
+	"github.com/tylertreat/BoomFilters"
 )
 
 var (
@@ -103,6 +105,8 @@ type IpfsDHT struct {
 	plk sync.Mutex
 
 	stripedPutLocks [256]sync.Mutex
+
+	frequentCIDs *boom.TopK
 
 	// DHT protocols we query with. We'll only add peers to our routing
 	// table if they speak these protocols.
@@ -276,6 +280,11 @@ func makeDHT(ctx context.Context, h host.Host, cfg config) (*IpfsDHT, error) {
 		selfKey:                kb.ConvertPeerID(h.ID()),
 		peerstore:              h.Peerstore(),
 		host:                   h,
+
+		// Track top 10 requested CIDs
+		// TODO: parameters should be configurable
+		frequentCIDs:			boom.NewTopK(0.001,0.99, 50),
+
 		strmap:                 make(map[peer.ID]*messageSender),
 		birth:                  time.Now(),
 		protocols:              protocols,
