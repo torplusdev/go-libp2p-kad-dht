@@ -4,8 +4,11 @@ go 1.14
 
 replace github.com/libp2p/go-libp2p-core => ../go-libp2p-core
 
+replace github.com/libp2p/go-eventbus => ../go-eventbus
+
+replace paidpiper.com/payment-gateway => ../PaymentServices/PaymentGateway
+
 require (
-	github.com/d4l3k/messagediff v1.2.1 // indirect
 	github.com/gogo/protobuf v1.3.1
 	github.com/google/gopacket v1.1.18
 	github.com/google/uuid v1.1.2
@@ -35,7 +38,9 @@ require (
 	github.com/multiformats/go-multihash v0.0.14
 	github.com/multiformats/go-multistream v0.2.0
 	github.com/stretchr/testify v1.6.1
+	github.com/tylertreat/BoomFilters v0.0.0-20210315201527-1a82519a3e43
 	github.com/whyrusleeping/go-keyspace v0.0.0-20160322163242-5b898ac5add1
 	go.opencensus.io v0.22.4
 	go.uber.org/zap v1.16.0
+	paidpiper.com/payment-gateway v0.0.0
 )
