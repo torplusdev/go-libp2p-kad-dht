@@ -6,7 +6,7 @@ replace github.com/libp2p/go-libp2p-core => ../go-libp2p-core
 
 replace github.com/libp2p/go-eventbus => ../go-eventbus
 
-replace paidpiper.com/payment-gateway => ../PaymentServices/PaymentGateway
+replace paidpiper.com/payment-gateway => ../go-payment-service/PaymentGateway
 
 require (
 	github.com/gogo/protobuf v1.3.1
