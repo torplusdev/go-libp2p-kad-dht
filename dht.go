@@ -16,6 +16,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/libp2p/go-libp2p-core/routing"
+	"github.com/libp2p/go-libp2p-kad-dht/frequent"
 	"github.com/libp2p/go-libp2p-kad-dht/metrics"
 	pb "github.com/libp2p/go-libp2p-kad-dht/pb"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
@@ -24,7 +25,7 @@ import (
 	"github.com/libp2p/go-libp2p-kbucket/peerdiversity"
 	record "github.com/libp2p/go-libp2p-record"
 	recpb "github.com/libp2p/go-libp2p-record/pb"
-	ppserver "paidpiper.com/payment-gateway/clientserver"
+	ppserver "paidpiper.com/payment-gateway/boom/server"
 
 	"github.com/gogo/protobuf/proto"
 	ds "github.com/ipfs/go-datastore"
@@ -36,8 +37,6 @@ import (
 	"github.com/multiformats/go-multihash"
 	"go.opencensus.io/tag"
 	"go.uber.org/zap"
-
-	boom "github.com/tylertreat/BoomFilters"
 )
 
 var (
@@ -106,7 +105,7 @@ type IpfsDHT struct {
 
 	stripedPutLocks [256]sync.Mutex
 
-	frequentCIDs *boom.TopK
+	frequentCIDs frequent.Storage
 
 	// DHT protocols we query with. We'll only add peers to our routing
 	// table if they speak these protocols.
@@ -283,7 +282,7 @@ func makeDHT(ctx context.Context, h host.Host, cfg config) (*IpfsDHT, error) {
 
 		// Track top 10 requested CIDs
 		// TODO: parameters should be configurable
-		frequentCIDs: boom.NewTopK(0.001, 0.99, 50),
+		frequentCIDs: frequent.New(),
 
 		strmap:                 make(map[peer.ID]*messageSender),
 		birth:                  time.Now(),
@@ -302,7 +301,7 @@ func makeDHT(ctx context.Context, h host.Host, cfg config) (*IpfsDHT, error) {
 		addPeerToRTChan:   make(chan addPeerRTReq),
 		refreshFinishedCh: make(chan struct{}),
 	}
-	ppserver.AddHandler(dht.frequentCIDs)
+	ppserver.AddSource(dht.frequentCIDs)
 	var maxLastSuccessfulOutboundThreshold time.Duration
 
 	// The threshold is calculated based on the expected amount of time that should pass before we

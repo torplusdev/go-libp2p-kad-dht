@@ -530,29 +530,7 @@ func (dht *IpfsDHT) GetMostFrequentContentAsync(ctx context.Context) <-chan rout
 		close(topOut)
 		return topOut
 	}
-
-	ts := time.Now()
-
-	defaultChannelBuffer := 1
-
-	topOut := make(chan routing.ContentListing, defaultChannelBuffer)
-
-	for _, e := range dht.frequentCIDs.Elements() {
-
-		_, cid, err := cid.CidFromBytes(e.Data)
-
-		if err != nil {
-			listing := routing.ContentListing{
-				Cid:         cid,
-				Frequency:   e.Freq,
-				LastUpdated: ts,
-			}
-
-			topOut <- listing
-		}
-	}
-
-	return topOut
+	return dht.GetMostFrequentContentAsync(ctx)
 }
 
 func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx context.Context, key multihash.Multihash, count int, peerOut chan peer.AddrInfo) {
