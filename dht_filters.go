@@ -33,6 +33,13 @@ func init() {
 // isPublicAddr follows the logic of manet.IsPublicAddr, except it uses
 // a stricter definition of "public" for ipv6: namely "is it in 2000::/3"?
 func isPublicAddr(a ma.Multiaddr) bool {
+	// If we got an onion address, it's always public
+	onion, err := a.ValueForProtocol(ma.P_ONION3)
+	if err == nil {
+		if onion != "" {
+			return true
+		}
+	}
 	ip, err := manet.ToIP(a)
 	if err != nil {
 		return false
