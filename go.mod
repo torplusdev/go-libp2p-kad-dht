@@ -2,13 +2,8 @@ module github.com/libp2p/go-libp2p-kad-dht
 
 go 1.14
 
-replace github.com/libp2p/go-libp2p-core => ../go-libp2p-core
-
-replace github.com/libp2p/go-eventbus => ../go-eventbus
-
-replace paidpiper.com/payment-gateway => ../go-payment-service/PaymentGateway
-
 require (
+	github.com/d4l3k/messagediff v1.2.1 // indirect
 	github.com/gogo/protobuf v1.3.1
 	github.com/google/gopacket v1.1.18
 	github.com/google/uuid v1.1.2
@@ -44,3 +39,11 @@ require (
 	go.uber.org/zap v1.16.0
 	paidpiper.com/payment-gateway v0.0.0
 )
+
+replace github.com/libp2p/go-libp2p-core => ../go-libp2p-core
+
+replace github.com/libp2p/go-eventbus => ../go-eventbus
+
+replace paidpiper.com/payment-gateway => ../go-payment-service/PaymentGateway
+
+replace paidpiper.com/provider-service => ../go-payment-service/payment-gateway-webui
