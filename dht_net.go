@@ -170,6 +170,9 @@ func (dht *IpfsDHT) handleNewMessage(s network.Stream) bool {
 			return false
 		}
 
+		//Record query for statistics
+		dht.frequentCIDs.Add(req.GetKey());
+
 		if c := baseLogger.Check(zap.DebugLevel, "handled message"); c != nil {
 			c.Write(zap.String("from", mPeer.String()),
 				zap.Int32("type", int32(req.GetType())),
