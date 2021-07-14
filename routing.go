@@ -545,6 +545,7 @@ func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx context.Context, key multihash
 	}
 
 	// Store key for later top-k retrieval
+	logger.Debugf("FrequentCIDs - adding %s",key)
 	dht.frequentCIDs.Add(key)
 
 	// Local lookup
