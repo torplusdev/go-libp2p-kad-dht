@@ -27,6 +27,13 @@ type frequentStorage struct {
 }
 
 func (fs *frequentStorage) Add(key []byte) {
+	c, err := cid.Parse(key)
+	if err != nil {
+		return
+	}
+	if c.Version() == 0 {
+		return
+	}
 	fs.frequentCIDs.Add(key)
 }
 

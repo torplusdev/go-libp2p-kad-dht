@@ -2,13 +2,8 @@ module github.com/libp2p/go-libp2p-kad-dht
 
 go 1.14
 
-replace github.com/libp2p/go-libp2p-core => ../go-libp2p-core
-
-replace github.com/libp2p/go-eventbus => ../go-eventbus
-
-replace paidpiper.com/payment-gateway => ../go-payment-service/PaymentGateway
-
 replace github.com/libp2p/go-libp2p-kbucket => ../go-libp2p-kbucket
+
 require (
 	github.com/d4l3k/messagediff v1.2.1 // indirect
 	github.com/gogo/protobuf v1.3.1
