@@ -2,6 +2,7 @@ package frequent
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ipfs/go-cid"
@@ -29,9 +30,11 @@ type frequentStorage struct {
 func (fs *frequentStorage) Add(key []byte) {
 	c, err := cid.Parse(key)
 	if err != nil {
+		fmt.Println("Debug_FREQ: parse cid error")
 		return
 	}
 	if c.Version() == 0 {
+		fmt.Println("Debug_FREQ: version not valid")
 		return
 	}
 	fs.frequentCIDs.Add(key)

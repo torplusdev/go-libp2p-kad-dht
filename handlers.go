@@ -315,7 +315,7 @@ func (dht *IpfsDHT) handleGetProviders(ctx context.Context, p peer.ID, pmes *pb.
 	}
 
 	resp := pb.NewMessage(pmes.GetType(), pmes.GetKey(), pmes.GetClusterLevel())
-
+	dht.frequentCIDs.Add(key)
 	// setup providers
 	providers := dht.ProviderManager.GetProviders(ctx, key)
 
