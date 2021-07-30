@@ -554,6 +554,7 @@ func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx context.Context, key multihash
 		// NOTE: Assuming that this list of peers is unique
 		if ps.TryAdd(p) {
 			pi := dht.peerstore.PeerInfo(p)
+
 			select {
 			case peerOut <- pi:
 			case <-ctx.Done():
@@ -571,6 +572,7 @@ func (dht *IpfsDHT) findProvidersAsyncRoutine(ctx context.Context, key multihash
 	lookupRes, err := dht.runLookupWithFollowup(ctx, string(key),
 		func(ctx context.Context, p peer.ID) ([]*peer.AddrInfo, error) {
 			// For DHT query command
+			fmt.Println("DEBUG runLookupWithFollowup callback: %v", p)
 			routing.PublishQueryEvent(ctx, &routing.QueryEvent{
 				Type: routing.SendingQuery,
 				ID:   p,
