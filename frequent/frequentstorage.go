@@ -8,11 +8,13 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/libp2p/go-libp2p-core/routing"
 	boom "github.com/libp2p/go-libp2p-kad-dht/frequent/boom"
+	"github.com/multiformats/go-multihash"
 	"paidpiper.com/payment-gateway/boom/data"
 )
 
 type Storage interface {
 	Add(key []byte)
+	AddMultihash(key []byte)
 	GetMostFrequentContentAsync(ctx context.Context) <-chan routing.ContentListing
 	Elements() []*data.FrequencyContentMetadata
 }
@@ -27,6 +29,20 @@ type frequentStorage struct {
 	frequentCIDs *boom.TopK
 }
 
+func (fs *frequentStorage) AddMultihash(key []byte) {
+	_, m, err := multihash.MHFromBytes(key)
+	if err != nil {
+		fmt.Println("Debug_FREQ: MHFromBytes error")
+		return
+	}
+	b58String := m.B58String()
+	cid, err := cid.Parse(b58String)
+	if err != nil {
+		fmt.Println("Debug_FREQ: Parse CID error")
+		return
+	}
+	fs.frequentCIDs.Add(cid.Bytes())
+}
 func (fs *frequentStorage) Add(key []byte) {
 	c, err := cid.Parse(key)
 	if err != nil {
