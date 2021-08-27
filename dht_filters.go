@@ -144,6 +144,7 @@ func getCachedRouter() routing.Router {
 
 // PrivateRoutingTableFilter allows a peer to be added to the routing table if the connections to that peer indicate
 // that it is on a private network
+
 func PrivateRoutingTableFilter(dht *IpfsDHT, conns []network.Conn) bool {
 	router := getCachedRouter()
 	myAdvertisedIPs := make([]net.IP, 0)
@@ -159,6 +160,15 @@ func PrivateRoutingTableFilter(dht *IpfsDHT, conns []network.Conn) bool {
 
 	for _, c := range conns {
 		ra := c.RemoteMultiaddr()
+
+		// If this is a tor connection, assume its usable as dht node
+		onion, err := ra.ValueForProtocol(ma.P_ONION3)
+		if err == nil {
+			if onion != "" {
+				return true
+			}
+		}
+
 		if isPrivateAddr(ra) && !isRelayAddr(ra) {
 			return true
 		}
