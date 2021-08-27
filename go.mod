@@ -46,6 +46,10 @@ replace github.com/libp2p/go-libp2p-core => ../go-libp2p-core
 
 replace github.com/libp2p/go-eventbus => ../go-eventbus
 
+replace github.com/multiformats/go-multiaddr => ../go-multiaddr
+
+replace github.com/multiformats/go-multiaddr/net => ../go-multiaddr-net
+
 replace paidpiper.com/payment-gateway => ../go-payment-service/PaymentGateway
 
 replace paidpiper.com/provider-service => ../go-payment-service/payment-gateway-webui
