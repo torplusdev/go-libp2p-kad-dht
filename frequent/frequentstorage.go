@@ -21,7 +21,7 @@ type Storage interface {
 
 func New() Storage {
 	return &frequentStorage{
-		frequentCIDs: boom.NewTopK(0.001, 0.99, 50),
+		frequentCIDs: boom.NewTopK(0.001, 0.99, 50*1000),
 	}
 }
 
