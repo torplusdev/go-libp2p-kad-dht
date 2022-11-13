@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ipfs/go-cid"
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -316,7 +317,23 @@ func (dht *IpfsDHT) handleGetProviders(ctx context.Context, p peer.ID, pmes *pb.
 
 	resp := pb.NewMessage(pmes.GetType(), pmes.GetKey(), pmes.GetClusterLevel())
 	fmt.Println("AddMultihash:", key)
-	dht.frequentCIDs.AddMultihash(key)
+
+	v, cid, err := cid.CidFromBytes(key)
+
+	_ = v
+	if err == nil {
+		// Add only if root
+		if dht.RootValidator != nil {
+			isRoot, err := dht.RootValidator.CheckRoot(cid)
+
+			if err == nil {
+				if isRoot {
+					dht.frequentCIDs.AddMultihash(key)
+				}
+			}
+		}
+	}
+
 	// setup providers
 	providers := dht.ProviderManager.GetProviders(ctx, key)
 

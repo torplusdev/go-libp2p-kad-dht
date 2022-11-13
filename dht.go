@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/libp2p/go-libp2p-kad-dht/analysis"
 	"math"
 	"math/rand"
 	"sync"
@@ -93,7 +94,8 @@ type IpfsDHT struct {
 
 	birth time.Time // When this peer started up
 
-	Validator record.Validator
+	Validator     record.Validator
+	RootValidator analysis.RootValidator
 
 	ctx  context.Context
 	proc goprocess.Process
@@ -193,6 +195,7 @@ func New(ctx context.Context, h host.Host, options ...Option) (*IpfsDHT, error) 
 	dht.disableFixLowPeers = cfg.disableFixLowPeers
 
 	dht.Validator = cfg.validator
+	dht.RootValidator = cfg.rootValidator
 
 	dht.testAddressUpdateProcessing = cfg.testAddressUpdateProcessing
 

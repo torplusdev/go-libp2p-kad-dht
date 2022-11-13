@@ -9,8 +9,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	"github.com/libp2p/go-libp2p-kad-dht/analysis"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
-
 	"github.com/libp2p/go-libp2p-kbucket/peerdiversity"
 	record "github.com/libp2p/go-libp2p-record"
 
@@ -41,6 +41,7 @@ const DefaultPrefix protocol.ID = "/ipfs"
 type config struct {
 	datastore          ds.Batching
 	validator          record.Validator
+	rootValidator      analysis.RootValidator
 	validatorChanged   bool // if true implies that the validator has been changed and that defaults should not be used
 	mode               ModeOpt
 	protocolPrefix     protocol.ID
@@ -230,6 +231,13 @@ func Validator(v record.Validator) Option {
 	return func(c *config) error {
 		c.validator = v
 		c.validatorChanged = true
+		return nil
+	}
+}
+
+func RootValidator(v analysis.RootValidator) Option {
+	return func(c *config) error {
+		c.rootValidator = v
 		return nil
 	}
 }

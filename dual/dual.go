@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/libp2p/go-libp2p-kad-dht/analysis"
 
 	"github.com/ipfs/go-cid"
 	ci "github.com/libp2p/go-libp2p-core/crypto"
@@ -140,6 +141,13 @@ func New(ctx context.Context, h host.Host, options ...Option) (*DHT, error) {
 	return &impl, nil
 }
 
+func (dht *DHT) SetRootValidator(rv analysis.RootValidator) error {
+	dht.LAN.RootValidator = rv
+	dht.WAN.RootValidator = rv
+
+	return nil
+}
+
 // Close closes the DHT context.
 func (dht *DHT) Close() error {
 	return combineErrors(dht.WAN.Close(), dht.LAN.Close())
@@ -163,6 +171,7 @@ func (dht *DHT) GetRoutingTableDiversityStats() []peerdiversity.CplDiversityStat
 	if dht.WANActive() {
 		return dht.WAN.GetRoutingTableDiversityStats()
 	}
+
 	return nil
 }
 
@@ -311,7 +320,7 @@ func (dht *DHT) PutValue(ctx context.Context, key string, val []byte, opts ...ro
 	return dht.LAN.PutValue(ctx, key, val, opts...)
 }
 
-func (d *DHT) GetMostFrequentContentAsync(ctx context.Context) <- chan routing.ContentListing {
+func (d *DHT) GetMostFrequentContentAsync(ctx context.Context) <-chan routing.ContentListing {
 	// Empty placeholder
 	topOut := make(chan routing.ContentListing)
 
