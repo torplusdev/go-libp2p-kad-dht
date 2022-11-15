@@ -3,6 +3,7 @@ package boom
 import (
 	"bytes"
 	"container/heap"
+	"sync"
 	"time"
 )
 
@@ -50,6 +51,8 @@ func New(k uint) ElementsStorage {
 }
 
 type elementsStorage struct {
+	sync.RWMutex
+
 	k uint
 
 	elements *elementHeap
@@ -61,7 +64,12 @@ func (t *elementsStorage) Elements() []*Element {
 	}
 
 	elements := make(elementHeap, t.elements.Len())
-	copy(elements, *t.elements)
+	{
+		t.Lock()
+		defer t.Unlock()
+		copy(elements, *t.elements)
+	}
+
 	heap.Init(&elements)
 	topK := make([]*Element, 0, t.k)
 
@@ -73,7 +81,9 @@ func (t *elementsStorage) Elements() []*Element {
 }
 
 func (es *elementsStorage) Remove(i int) {
-	heap.Remove(es.elements, i)
+	if i < es.elements.Len() {
+		heap.Remove(es.elements, i)
+	}
 }
 func (es *elementsStorage) Pop() {
 	heap.Pop(es.elements)
@@ -83,6 +93,9 @@ func (es *elementsStorage) Push(e *Element) {
 }
 
 func (es *elementsStorage) Reset() {
+	es.Lock()
+	defer es.Unlock()
+
 	elements := make(elementHeap, 0, es.k)
 	heap.Init(&elements)
 	es.elements = &elements
@@ -100,6 +113,10 @@ func (es *elementsStorage) isTop(freq uint64) bool {
 // the frequency is updated. If the heap already has k elements, the element
 // with the minimum frequency is removed.
 func (es *elementsStorage) Insert(data []byte, freq uint64) {
+
+	es.Lock()
+	defer es.Unlock()
+
 	for i, element := range *es.elements {
 		if bytes.Equal(data, element.Data) {
 			// Element already in top-k, replace it with new frequency.
